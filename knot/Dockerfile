@@ -22,7 +22,9 @@ COPY rootfs .
 RUN chmod 755 /etc
 RUN chmod -R 755 /etc/s6-overlay
 RUN apk add shadow s6-overlay execline openssl openssh git curl bash
-RUN useradd -d /home/git git && openssl rand -hex 16 | passwd --stdin git
+RUN groupadd -g 1000 -f git && \
+    useradd -u 1000 -g 1000 -d /home/git git && \
+    openssl rand -hex 16 | passwd --stdin git
 RUN mkdir -p /home/git/repositories && chown -R git:git /home/git
 COPY --from=builder /usr/bin/knot /usr/bin
 RUN mkdir /app && chown -R git:git /app

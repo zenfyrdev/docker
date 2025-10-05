@@ -29,6 +29,11 @@ COPY ./xpost /app
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --locked --no-dev
 
+RUN adduser -D -u 1000 app && \
+    chown -R app:app /app
+
+USER app
+
 # Place executables in the environment at the front of the path
 ENV PATH="/app/.venv/bin:$PATH"
 

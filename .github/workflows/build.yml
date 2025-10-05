@@ -8,18 +8,44 @@ on:
   workflow_dispatch:
     inputs:
       services:
-        description: 'comma-separated list of services to build (e.g. "caddy,i2pd-tools")'
+        description: "Comma-separated list of services to build (e.g., caddy,i2pd-tools). Leave empty to auto-detect."
         required: false
-        default: "caddy,i2pd-tools"
+        type: string
+        default: ""
 
 jobs:
-  build:
+  setup-matrix:
     runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: "recursive"
+          token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Set up matrix
+        id: set-matrix
+        run: |
+          if [ -n "${{ github.event.inputs.services }}" ]; then
+            echo "Using provided services: ${{ github.event.inputs.services }}"
+            SERVICES=$(echo "${{ github.event.inputs.services }}" | tr ',' '\n' | xargs -I {} echo '"{}"' | jq -s '.')
+          else
+            echo "Auto-detecting folders with Dockerfiles..."
+            SERVICES=$(find . -maxdepth 2 -name Dockerfile -type f | cut -d/ -f2 | sort -u | jq -R . | jq -s '.')
+          fi
+
+          MATRIX=$(echo "$SERVICES" | jq -c '{service: .}')
+          echo "Matrix: $MATRIX"
+          echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
+
+  build:
+    needs: setup-matrix
+    runs-on: ubuntu-latest
     strategy:
-      matrix:
-        service: ${{ fromJson('["' + replace(replace(github.event.inputs.services, ' ', ''), ',', '","') + '"]') }}
-
+      matrix: ${{fromJson(needs.setup-matrix.outputs.matrix)}}
+      fail-fast: false
     steps:
       - name: Checkout code
         uses: actions/checkout@v4

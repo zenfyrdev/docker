@@ -49,11 +49,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          submodules: "recursive"
           token: ${{ secrets.GITHUB_TOKEN }}
           sparse-checkout: |
             ${{ matrix.service }}
           sparse-checkout-cone-mode: true
+
+      - name: Init Submodules
+        run: |
+          git submodule update --init --recursive ${{ matrix.service }}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3

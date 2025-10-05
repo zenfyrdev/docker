@@ -7,49 +7,19 @@ permissions:
 on:
   workflow_dispatch:
     inputs:
-      service_selector:
-        description: 'services to build (comma-separated, or "all")'
-        required: true
-        default: "all"
+      services:
+        description: 'comma-separated list of services to build (e.g. "caddy,i2pd-tools")'
+        required: false
+        default: "caddy,i2pd-tools"
 
 jobs:
-  setup:
-    runs-on: ubuntu-latest
-    outputs:
-      matrix: ${{ steps.set-matrix.outputs.matrix }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Install jq
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y jq
-
-      - name: Set matrix based on input
-        id: set-matrix
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          selector="${{ github.event.inputs.service_selector }}"
-
-          if [ "$selector" = "all" ]; then
-            SERVICES_JSON=$(find . -maxdepth 2 -name "Dockerfile" -exec dirname {} \; \
-              | sed 's|^\./||' \
-              | jq -R -s -c 'split("\n") | map(select(. != ""))')
-          else
-            SERVICES_JSON=$(printf '%s' "$selector" | jq -R -s -c 'split(",") | map(gsub("^[[:space:]]+|[[:space:]]+$"; "")) | map(select(. != ""))')
-          fi
-
-          MATRIX_JSON=$(jq -n --argjson arr "$SERVICES_JSON" '{"service": $arr}')
-          printf '%s\n' "matrix=$MATRIX_JSON" >> "$GITHUB_OUTPUT"
-          printf 'WROTE matrix for outputs: %s\n' "$MATRIX_JSON"
-
   build:
     runs-on: ubuntu-latest
+
     strategy:
-      matrix: ${{ fromJson(needs.setup.outputs.matrix) }}
+      matrix:
+        service: ${{ fromJson('["' + replace(replace(github.event.inputs.services, ' ', ''), ',', '","') + '"]') }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -71,18 +41,12 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push Docker images
-        shell: bash
         run: |
-          set -euo pipefail
-
-          service_dir="${{ matrix.service }}"
-          service_dir="${service_dir#./}"
-          image_name="$(echo "$service_dir" | sed 's|/|-|g' | tr '[:upper:]' '[:lower:]')"
-
-          echo "Building: context='$service_dir' dockerfile='$service_dir/Dockerfile' image=ghcr.io/${{ github.repository_owner }}/$image_name:latest"
-
+          echo "Building images for ${{ matrix.service }}"
           docker buildx build \
             --platform linux/amd64,linux/arm64 \
-            -f "$service_dir/Dockerfile" \
-            -t "ghcr.io/${{ github.repository_owner }}/$image_name:latest" \
-            --push "$service_dir"
+            -f ${{ matrix.service }}/Dockerfile \
+            -t ghcr.io/${{ github.repository_owner }}/${{ matrix.service }}:latest \
+            --push ${{ matrix.service }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

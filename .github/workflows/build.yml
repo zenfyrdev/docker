@@ -1,13 +1,44 @@
 name: Build and Push Multi-arch Docker Images
 
+permissions:
+  contents: read
+  packages: write
+
 on:
-  schedule:
-    - cron: "0 2 * * *"
   workflow_dispatch:
+    inputs:
+      service_selector:
+        description: 'services to build (comma-separated, or "all")'
+        required: true
+        default: "all"
 
 jobs:
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set matrix based on input
+        id: set-matrix
+        run: |
+          if [ "${{ github.event.inputs.service_selector }}" == "all" ]; then
+            SERVICES_JSON=$(find . -maxdepth 2 -name "Dockerfile" -exec dirname {} \; \
+              | sed 's|^\./||' \
+              | jq -R -s -c 'split("\n") | map(select(. != ""))')
+          else
+            SERVICES_JSON=$(echo "${{ github.event.inputs.service_selector }}" \
+              | tr -d ' ' \
+              | jq -R -s -c 'split(",") | map(select(. != ""))')
+          fi
+          echo "matrix={\"service\":$SERVICES_JSON}" >> $GITHUB_OUTPUT
+
   build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJson(needs.setup.outputs.matrix) }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -30,14 +61,13 @@ jobs:
 
       - name: Build and push Docker images
         run: |
-          echo "Building images for ${{ matrix.service }}"
+          service_dir="${{ matrix.service }}"
+          service_name="$(echo "$service_dir" | sed 's|^\./||; s|/|-|g' | tr '[:upper:]' '[:lower:]')"
+
+          echo "Building $service_dir -> image: ghcr.io/${{ github.repository_owner }}/$service_name:latest"
+
           docker buildx build \
             --platform linux/amd64,linux/arm64 \
-            -f ${{ matrix.service }}/Dockerfile \
-            -t ghcr.io/${{ github.repository_owner }}/${{ matrix.service }}:latest \
-            --push ${{ matrix.service }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    strategy:
-      matrix:
-        service: [caddy, i2pd-tools]
+            -f "$service_dir/Dockerfile" \
+            -t "ghcr.io/${{ github.repository_owner }}/$service_name:latest" \
+            --push "$service_dir"

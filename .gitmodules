@@ -1,3 +1,6 @@
 [submodule "i2pd-tools/i2pd-tools"]
 	path = i2pd-tools/i2pd-tools
 	url = https://github.com/purplei2p/i2pd-tools
+[submodule "knot/core"]
+	path = knot/core
+	url = https://tangled.org/@tangled.org/core

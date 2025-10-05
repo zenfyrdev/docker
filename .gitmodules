@@ -7,3 +7,6 @@
 [submodule "xpost/xpost"]
 	path = xpost/xpost
 	url = https://tangled.org/@melontini.me/xpost
+[submodule "spindle/core"]
+	path = spindle/core
+	url = https://tangled.org/@tangled.org/core

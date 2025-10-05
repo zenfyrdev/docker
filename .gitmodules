@@ -4,3 +4,6 @@
 [submodule "knot/core"]
 	path = knot/core
 	url = https://tangled.org/@tangled.org/core
+[submodule "xpost/xpost"]
+	path = xpost/xpost
+	url = https://tangled.org/@melontini.me/xpost

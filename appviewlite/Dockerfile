@@ -21,7 +21,8 @@ RUN chown -R app:app /app /home/app
 
 USER app
 
-ENV APPVIEWLITE_BIND_URLS=http://localhost:61750
-EXPOSE 61750
+ENV APPVIEWLITE_BIND_URLS=http://+:8080
+ENV APPVIEWLITE_ALLOW_NEW_DATABASE=1
+EXPOSE 8080
 
 ENTRYPOINT ["dotnet", "AppViewLite.Web.dll"]

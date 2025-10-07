@@ -10,3 +10,6 @@
 [submodule "spindle/core"]
 	path = spindle/core
 	url = https://tangled.org/@tangled.org/core
+[submodule "appviewlite/AppViewLite"]
+	path = appviewlite/AppViewLite
+	url = https://github.com/alnkesq/AppViewLite.git

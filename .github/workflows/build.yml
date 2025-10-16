@@ -86,7 +86,7 @@ jobs:
     runs-on: ubuntu-24.04
     strategy:
       matrix:
-        service: ${{ fromJson(needs.setup-matrix.outputs.matrix).service }}
+        service: ${{ fromJson(needs.setup-services.outputs.services) }}
     steps:
       - name: Log in to GHCR
         uses: docker/login-action@v3

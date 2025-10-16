@@ -2,9 +2,11 @@ FROM golang:1.24-alpine as builder
 ENV CGO_ENABLED=1
 
 WORKDIR /app
-RUN apk add gcc musl-dev
+RUN apk add gcc musl-dev patch
 COPY ./core .
-RUN go build -o /usr/bin/spindle -ldflags '-s -w -extldflags "-static"' ./cmd/spindle
+COPY ./docker.patch ./
+RUN patch -p1 < docker.patch && \
+    go build -o /usr/bin/spindle -ldflags '-s -w -extldflags "-static"' ./cmd/spindle
 
 FROM alpine:edge
 EXPOSE 6555

@@ -38,7 +38,7 @@ jobs:
           echo "services=$SERVICES" >> $GITHUB_OUTPUT
 
   build:
-    needs: setup-matrix
+    needs: setup-services
     runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
     strategy:
       matrix:

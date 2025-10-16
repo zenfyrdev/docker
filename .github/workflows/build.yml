@@ -14,10 +14,10 @@ on:
         default: ""
 
 jobs:
-  setup-matrix:
-    runs-on: ubuntu-latest
+  setup-services:
+    runs-on: ubuntu-24.04
     outputs:
-      matrix: ${{ steps.set-matrix.outputs.matrix }}
+      services: ${{ steps.set-services.outputs.services }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -25,28 +25,27 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up matrix
-        id: set-matrix
+        id: set-services
         run: |
           if [ -n "${{ github.event.inputs.services }}" ]; then
             echo "Using provided services: ${{ github.event.inputs.services }}"
-            SERVICES=$(echo "${{ github.event.inputs.services }}" | tr ',' '\n' | xargs -I {} echo '"{}"' | jq -s '.')
+            SERVICES=$(echo "${{ github.event.inputs.services }}" | tr ',' '\n' | xargs -I {} echo '"{}"' | jq -c -s '.')
           else
             echo "Auto-detecting folders with Dockerfiles..."
-            SERVICES=$(find . -maxdepth 2 -name Dockerfile -type f | cut -d/ -f2 | sort -u | jq -R . | jq -s '.')
+            SERVICES=$(find . -maxdepth 2 -name Dockerfile -type f | cut -d/ -f2 | sort -u | jq -R . | jq -c -s '.')
           fi
 
-          MATRIX=$(echo "$SERVICES" | jq -c '{service: .}')
-          echo "Matrix: $MATRIX"
-          echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
+          echo "services=$SERVICES" >> $GITHUB_OUTPUT
 
   build:
     needs: setup-matrix
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
     strategy:
-      matrix: ${{fromJson(needs.setup-matrix.outputs.matrix)}}
-      fail-fast: false
+      matrix:
+        service: ${{ fromJson(needs.setup-services.outputs.services) }}
+        arch: [amd64, arm64]
     steps:
-      - name: Checkout code
+      - name: Checkout code (sparse for service)
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -58,12 +57,6 @@ jobs:
         run: |
           git submodule update --init --recursive ${{ matrix.service }}
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
       - name: Log in to GHCR
         uses: docker/login-action@v3
         with:
@@ -71,13 +64,46 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push Docker images
+      - name: Set up Docker Buildx (required to use buildx imagetools)
+        uses: docker/setup-buildx-action@v3
+        with:
+          driver: docker-container
+
+      - name: Build and push native image (per-arch)
         uses: docker/build-push-action@v4
         with:
           context: ${{ matrix.service }}
           file: ${{ matrix.service }}/Dockerfile
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/${{ matrix.arch }}
           push: true
-          tags: ghcr.io/${{ github.repository_owner }}/${{ matrix.service }}:latest
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/${{ matrix.service }}:${{ matrix.arch }}-latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  create-manifest:
+    needs: build
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        service: ${{ fromJson(needs.setup-matrix.outputs.matrix).service }}
+    steps:
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          driver: docker-container
+
+      - name: Create and push multi-arch manifest (imagetools)
+        run: |
+          AMD64_TAG="ghcr.io/${{ github.repository_owner }}/${{ matrix.service }}:amd64-latest"
+          ARM64_TAG="ghcr.io/${{ github.repository_owner }}/${{ matrix.service }}:arm64-latest"
+          MULTI_TAG="ghcr.io/${{ github.repository_owner }}/${{ matrix.service }}:latest"
+
+          docker buildx imagetools create --tag "$MULTI_TAG" "$AMD64_TAG" "$ARM64_TAG"

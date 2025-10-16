@@ -82,7 +82,7 @@ jobs:
           cache-to: type=gha,mode=max
 
   create-manifest:
-    needs: build
+    needs: [setup-services, build]
     runs-on: ubuntu-24.04
     strategy:
       matrix:

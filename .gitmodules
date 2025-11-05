@@ -4,9 +4,6 @@
 [submodule "knot/core"]
 	path = knot/core
 	url = https://tangled.org/@tangled.org/core
-[submodule "xpost/xpost"]
-	path = xpost/xpost
-	url = https://tangled.org/did:plc:rjhjcb3rgdsmdr6ykywuh63z/xpost
 [submodule "spindle/core"]
 	path = spindle/core
 	url = https://tangled.org/@tangled.org/core

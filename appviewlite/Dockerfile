@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:9.0-alpine AS build
+FROM mcr.microsoft.com/dotnet/sdk:10.0-alpine AS build
 
 RUN mkdir /src /app
 
@@ -6,7 +6,7 @@ WORKDIR /src
 COPY ./AppViewLite .
 RUN dotnet publish src/AppViewLite.Web -c Release -o /app/publish
 
-FROM mcr.microsoft.com/dotnet/aspnet:9.0-alpine
+FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine
 
 RUN apk add --no-cache \
     git

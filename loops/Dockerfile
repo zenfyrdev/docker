@@ -1,7 +1,7 @@
 # Node.js stage for building assets
 FROM node:24-trixie-slim AS node
 # PHP base image
-FROM serversideup/php:8.4-fpm
+FROM serversideup/php:8.4-fpm-nginx
 
 # Set working directory
 WORKDIR /var/www/html
@@ -64,4 +64,4 @@ RUN npm run build
 USER www-data
 
 # Expose port 8080 (default for serversideup/php)
-EXPOSE 9000
+EXPOSE 8080

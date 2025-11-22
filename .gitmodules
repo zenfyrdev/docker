@@ -10,3 +10,6 @@
 [submodule "appviewlite/AppViewLite"]
 	path = appviewlite/AppViewLite
 	url = https://github.com/alnkesq/AppViewLite.git
+[submodule "loops/loops-server"]
+	path = loops/loops-server
+	url = https://github.com/joinloops/loops-server.git

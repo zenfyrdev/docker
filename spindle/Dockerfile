@@ -1,4 +1,4 @@
-FROM golang:1.24-alpine as builder
+FROM golang:1.25-alpine as builder
 ENV CGO_ENABLED=1
 
 WORKDIR /app
@@ -6,7 +6,7 @@ RUN apk add gcc musl-dev patch
 COPY ./core .
 RUN go build -o /usr/bin/spindle -ldflags '-s -w -extldflags "-static"' ./cmd/spindle
 
-FROM alpine:edge
+FROM alpine:3.21
 EXPOSE 6555
 
 LABEL org.opencontainers.image.title='spindle'

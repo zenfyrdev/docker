@@ -1,4 +1,4 @@
-FROM golang:1.24-alpine as builder
+FROM golang:1.25-alpine as builder
 ENV KNOT_REPO_SCAN_PATH=/home/git/repositories
 ENV CGO_ENABLED=1
 
@@ -7,7 +7,7 @@ RUN apk add gcc musl-dev
 COPY ./core .
 RUN go build -o /usr/bin/knot -ldflags '-s -w -extldflags "-static"' ./cmd/knot
 
-FROM alpine:edge
+FROM alpine:3.21
 EXPOSE 5555
 EXPOSE 22
 

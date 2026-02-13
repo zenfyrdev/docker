@@ -4,7 +4,7 @@ ENV CGO_ENABLED=1
 
 WORKDIR /app
 RUN apk add gcc musl-dev
-COPY ./core .
+COPY ./src .
 RUN go build -o /usr/bin/knot -ldflags '-s -w -extldflags "-static"' ./cmd/knot
 
 FROM alpine:3.21

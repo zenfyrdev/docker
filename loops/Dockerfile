@@ -40,7 +40,7 @@ RUN install-php-extensions \
     zip
 
 # Copy application files
-COPY --chown=www-data:www-data ./loops-server /var/www/html
+COPY --chown=www-data:www-data ./src /var/www/html
 
 # Set proper permissions
 RUN chown -R www-data:www-data /var/www/html \

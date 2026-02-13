@@ -3,7 +3,7 @@ FROM mcr.microsoft.com/dotnet/sdk:10.0-alpine AS build
 RUN mkdir /src /app
 
 WORKDIR /src
-COPY ./AppViewLite .
+COPY ./src .
 RUN dotnet publish src/AppViewLite.Web -c Release -o /app/publish
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine

@@ -31,8 +31,8 @@ jobs:
             echo "Using provided services: ${{ github.event.inputs.services }}"
             SERVICES=$(echo "${{ github.event.inputs.services }}" | tr ',' '\n' | xargs -I {} echo '"{}"' | jq -c -s '.')
           else
-            echo "Auto-detecting folders with Dockerfiles..."
-            SERVICES=$(find . -maxdepth 2 -name Dockerfile -type f | cut -d/ -f2 | sort -u | jq -R . | jq -c -s '.')
+            echo "Auto-detecting projects..."
+            SERVICES=$(jq -r '.projects | keys[]' projects.json | jq -R . | jq -c -s '.')
           fi
 
           echo "services=$SERVICES" >> $GITHUB_OUTPUT
@@ -51,11 +51,18 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           sparse-checkout: |
             ${{ matrix.service }}
+            projects.json
           sparse-checkout-cone-mode: true
 
-      - name: Init Submodules
+      - name: Clone repository
         run: |
-          git submodule update --init --recursive ${{ matrix.service }}
+          REPO=$(jq -r ".projects.\"${{ matrix.service }}\".repo // empty" projects.json)
+
+          if [ -n "$REPO" ] && [ "$REPO" != "null" ]; then
+            REF=$(jq -r ".projects.\"${{ matrix.service }}\".ref" projects.json)
+            echo "Cloning $REPO:$REF into ${{ matrix.service }}/src/"
+            git clone --depth 1 --branch "$REF" --recursive "$REPO" "${{ matrix.service }}/src"
+          fi
 
       - name: Log in to GHCR
         uses: docker/login-action@v3

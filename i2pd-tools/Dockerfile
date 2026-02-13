@@ -9,7 +9,7 @@ RUN apk add --no-cache \
     zlib-dev
 
 # copy sources into the layer
-COPY ./i2pd-tools /opt/i2pd-tools
+COPY ./src /opt/i2pd-tools
 WORKDIR /opt/i2pd-tools
 
 # build all the tools

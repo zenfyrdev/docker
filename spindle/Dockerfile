@@ -3,7 +3,7 @@ ENV CGO_ENABLED=1
 
 WORKDIR /app
 RUN apk add gcc musl-dev patch
-COPY ./core .
+COPY ./src .
 RUN go build -o /usr/bin/spindle -ldflags '-s -w -extldflags "-static"' ./cmd/spindle
 
 FROM alpine:3.21

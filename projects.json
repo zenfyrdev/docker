@@ -1,0 +1,25 @@
+{
+  "projects": {
+    "appviewlite": {
+      "repo": "https://github.com/alnkesq/AppViewLite.git",
+      "ref": "main"
+    },
+    "knot": {
+      "repo": "https://tangled.org/@tangled.org/core.git",
+      "ref": "master"
+    },
+    "spindle": {
+      "repo": "https://tangled.org/@tangled.org/core.git",
+      "ref": "master"
+    },
+    "i2pd-tools": {
+      "repo": "https://github.com/purplei2p/i2pd-tools.git",
+      "ref": "master"
+    },
+    "loops": {
+      "repo": "https://github.com/joinloops/loops-server.git",
+      "ref": "master"
+    },
+    "caddy": {}
+  }
+}

@@ -1,6 +1,6 @@
 FROM python:3.11-alpine AS builder
 
-COPY . /build
+COPY ./src /build
 WORKDIR /build
 
 RUN apk add --no-cache git cargo libgcc

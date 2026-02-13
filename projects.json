@@ -5,11 +5,11 @@
       "ref": "main"
     },
     "knot": {
-      "repo": "https://tangled.org/@tangled.org/core.git",
+      "repo": "https://tangled.org/tangled.org/core.git",
       "ref": "master"
     },
     "spindle": {
-      "repo": "https://tangled.org/@tangled.org/core.git",
+      "repo": "https://tangled.org/tangled.org/core.git",
       "ref": "master"
     },
     "i2pd-tools": {
@@ -20,6 +20,10 @@
       "repo": "https://github.com/joinloops/loops-server.git",
       "ref": "master"
     },
-    "caddy": {}
+    "caddy": {},
+    "xmpp-discord-bridge": {
+      "repo": "https://tangled.org/did:plc:rjhjcb3rgdsmdr6ykywuh63z/xmpp-discord-bridge",
+      "ref": "main"
+    }
   }
 }

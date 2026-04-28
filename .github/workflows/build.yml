@@ -18,6 +18,7 @@ jobs:
     runs-on: ubuntu-24.04
     outputs:
       services: ${{ steps.set-services.outputs.services }}
+      tags: ${{ steps.set-services.outputs.tags }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -34,8 +35,10 @@ jobs:
             echo "Auto-detecting projects..."
             SERVICES=$(jq -r '.projects | keys[]' projects.json | jq -R . | jq -c -s '.')
           fi
+          TAGS=$(jq -c '.projects | to_entries | map({key: .key, value: (.value.tag // "latest")}) | from_entries' projects.json)
 
           echo "services=$SERVICES" >> $GITHUB_OUTPUT
+          echo "tags=$TAGS" >> $GITHUB_OUTPUT
 
   build:
     needs: setup-services
@@ -84,7 +87,7 @@ jobs:
           platforms: linux/${{ matrix.arch }}
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/${{ matrix.service }}:${{ matrix.arch }}-latest
+            ghcr.io/${{ github.repository_owner }}/${{ matrix.service }}:${{ matrix.arch }}-${{ fromJson(needs.setup-services.outputs.tags)[matrix.service] }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -109,8 +112,8 @@ jobs:
 
       - name: Create and push multi-arch manifest (imagetools)
         run: |
-          AMD64_TAG="ghcr.io/${{ github.repository_owner }}/${{ matrix.service }}:amd64-latest"
-          ARM64_TAG="ghcr.io/${{ github.repository_owner }}/${{ matrix.service }}:arm64-latest"
-          MULTI_TAG="ghcr.io/${{ github.repository_owner }}/${{ matrix.service }}:latest"
+          AMD64_TAG="ghcr.io/${{ github.repository_owner }}/${{ matrix.service }}:amd64-${{ fromJson(needs.setup-services.outputs.tags)[matrix.service] }}"
+          ARM64_TAG="ghcr.io/${{ github.repository_owner }}/${{ matrix.service }}:arm64-${{ fromJson(needs.setup-services.outputs.tags)[matrix.service] }}"
+          MULTI_TAG="ghcr.io/${{ github.repository_owner }}/${{ matrix.service }}:${{ fromJson(needs.setup-services.outputs.tags)[matrix.service] }}"
 
           docker buildx imagetools create --tag "$MULTI_TAG" "$AMD64_TAG" "$ARM64_TAG"

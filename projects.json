@@ -24,6 +24,11 @@
     "xmpp-discord-bridge": {
       "repo": "https://tangled.org/did:plc:rjhjcb3rgdsmdr6ykywuh63z/xmpp-discord-bridge",
       "ref": "main"
+    },
+    "xpost": {
+      "repo": "https://tangled.org/did:plc:rjhjcb3rgdsmdr6ykywuh63z/xpost",
+      "ref": "next",
+      "tag": "next"
     }
   }
 }

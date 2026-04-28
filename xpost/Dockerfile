@@ -25,7 +25,7 @@ ENV UV_LINK_MODE=copy
 VOLUME /app/data
 
 # Then, add the rest of the project source code and install it
-COPY --chown=app:app . /app
+COPY --chown=app:app ./src /app
 RUN uv sync --locked --no-group dev
 
 # Place executables in the environment at the front of the path

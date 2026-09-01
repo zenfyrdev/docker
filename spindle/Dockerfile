@@ -6,7 +6,7 @@ RUN apk add gcc musl-dev patch
 COPY ./src .
 RUN go build -o /usr/bin/spindle -ldflags '-s -w -extldflags "-static"' ./cmd/spindle
 
-FROM alpine:3.21
+FROM alpine:3.24
 EXPOSE 6555
 
 LABEL org.opencontainers.image.title='spindle'

@@ -1,4 +1,4 @@
-FROM golang:1.25-alpine as builder
+FROM golang:1.26-alpine as builder
 ENV CGO_ENABLED=1
 
 WORKDIR /app
@@ -19,6 +19,7 @@ LABEL org.opencontainers.image.licenses='MIT'
 RUN adduser -D -u 1000 git
 
 RUN mkdir -p /home/git/repositories && chown -R git:git /home/git
+RUN apk add git
 COPY --from=builder /usr/bin/spindle /usr/bin
 RUN mkdir /app && chown -R git:git /app
 

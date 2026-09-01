@@ -1,4 +1,4 @@
-FROM golang:1.25-alpine as builder
+FROM golang:1.26-alpine as builder
 ENV KNOT_REPO_SCAN_PATH=/home/git/repositories
 ENV CGO_ENABLED=1
 
